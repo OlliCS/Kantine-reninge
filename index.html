@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kantine Calculator</title>
   <style>
     body {
@@ -37,16 +37,27 @@
       background: #e0e0e0;
       margin: 8px 10px;
       padding: 10px;
-      text-align: left;
       border-radius: 5px;
       font-size: 1.2em;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: stretch;
+    }
+
+    .info {
+      flex: 1;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .naam {
-      flex: 1;
+      font-weight: normal;
+    }
+
+    .prijs {
+      font-weight: bold;
     }
 
     .aantal {
@@ -54,21 +65,17 @@
       margin-left: 10px;
     }
 
-    .prijs {
-      font-weight: bold;
-      margin-left: 10px;
-    }
-
     .min-knop {
-      position: absolute;
-      bottom: 5px;
-      right: 5px;
       background: red;
       color: white;
       border: none;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 1em;
+      padding: 0 15px;
+      font-size: 1.5em;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #resetBtn {
@@ -84,8 +91,8 @@
 </head>
 <body>
 
-  <h1>Reset bestelling</h1>
-  <img src="logo.jpeg" alt="JV Lo-Reninge Logo" class="logo">
+  <h1>Kantine Calculator</h1>
+  <img src="logo.jpeg" alt="JV Lo-Reninge Logo" class="logo" />
   <div id="totaal">TOTAAL: €0.00</div>
 
   <div id="producten"></div>
@@ -113,7 +120,7 @@
     function voegToe(naam, prijs) {
       aantallen[naam] = (aantallen[naam] || 0) + 1;
       totaal += prijs;
-      document.getElementById(`${naam}-aantal`).innerText = aantallen[naam] + "x";
+      updateAantal(naam);
       updateTotaal();
     }
 
@@ -122,15 +129,21 @@
       if (aantallen[naam] > 0) {
         aantallen[naam]--;
         totaal -= prijs;
-        document.getElementById(`${naam}-aantal`).innerText = aantallen[naam] + "x";
+        updateAantal(naam);
         updateTotaal();
       }
+    }
+
+    function updateAantal(naam) {
+      const aantal = aantallen[naam] || 0;
+      const aantalSpan = document.getElementById(`${naam}-aantal`);
+      aantalSpan.innerText = aantal > 0 ? `${aantal}x` : '';
     }
 
     function resetBestelling() {
       for (let p of producten) {
         aantallen[p.naam] = 0;
-        document.getElementById(`${p.naam}-aantal`).innerText = "0x";
+        updateAantal(p.naam);
       }
       totaal = 0;
       updateTotaal();
@@ -144,9 +157,13 @@
         div.className = 'product';
         div.onclick = () => voegToe(p.naam, p.prijs);
         div.innerHTML = `
-          <span class="naam">${p.naam}</span>
-          <span class="aantal" id="${p.naam}-aantal">0x</span>
-          <span class="prijs">€${p.prijs.toFixed(2)}</span>
+          <div class="info">
+            <div class="naam">${p.naam}</div>
+            <div>
+              <span class="aantal" id="${p.naam}-aantal"></span>
+              <span class="prijs">€${p.prijs.toFixed(2)}</span>
+            </div>
+          </div>
           <button class="min-knop" onclick="verwijder(event, '${p.naam}', ${p.prijs})">-</button>
         `;
         container.appendChild(div);

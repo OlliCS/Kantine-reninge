@@ -3,26 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kantine Kassa</title>
+  <title>Kantine Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #fff;
       margin: 0;
       padding: 0;
       text-align: center;
     }
+
     h1 {
       background: red;
       color: white;
       padding: 15px 0;
       margin: 0;
+      font-size: 1.8em;
     }
+
     #totaal {
       font-size: 2em;
       color: green;
       margin: 20px 0 10px;
     }
+
+    img.logo {
+      max-width: 100px;
+      margin: 10px auto;
+      display: block;
+    }
+
     .product {
       position: relative;
       background: #e0e0e0;
@@ -31,10 +40,25 @@
       text-align: left;
       border-radius: 5px;
       font-size: 1.2em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .product .prijs {
+
+    .naam {
+      flex: 1;
+    }
+
+    .aantal {
       font-weight: bold;
+      margin-left: 10px;
     }
+
+    .prijs {
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
     .min-knop {
       position: absolute;
       bottom: 5px;
@@ -46,107 +70,91 @@
       border-radius: 4px;
       font-size: 1em;
     }
-    .aantal-label {
-      position: absolute;
-      bottom: 5px;
-      left: 10px;
-      font-size: 0.9em;
-      color: #333;
-    }
-    button.reset {
+
+    #resetBtn {
       background: red;
       color: white;
-      font-size: 1.2em;
       border: none;
+      font-size: 1.2em;
       padding: 12px;
       width: 100%;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
-<h1>Reset bestelling</h1>
-<div id="totaal">TOTAAL: €0.00</div>
+  <h1>Reset bestelling</h1>
+  <img src="logo.jpeg" alt="JV Lo-Reninge Logo" class="logo">
+  <div id="totaal">TOTAAL: €0.00</div>
 
-<div id="producten"></div>
+  <div id="producten"></div>
 
-<button class="reset" onclick="resetBestelling()">Reset bestelling</button>
+  <button id="resetBtn" onclick="resetBestelling()">Reset bestelling</button>
 
-<script>
-const menu = [
-  { naam: "Fles cava / Fles witte wijn", prijs: 22.00 },
-  { naam: "Picon / Glas cava", prijs: 5.00 },
-  { naam: "Pizza Baguette", prijs: 5.00 },
-  { naam: "Hamburger", prijs: 5.00 },
-  { naam: "Croque", prijs: 4.00 },
-  { naam: "Speciaalbier / Porto / Wijn", prijs: 3.50 },
-  { naam: "Frisdrank / Snack / Koffie", prijs: 2.20 },
-];
+  <script>
+    const producten = [
+      { naam: "Frisdrank / Snack / Koffie", prijs: 2.20 },
+      { naam: "Speciaalbier / Porto / Wijn", prijs: 3.50 },
+      { naam: "Picon / Glas cava", prijs: 5.00 },
+      { naam: "Fles cava / Fles witte wijn", prijs: 22.00 },
+      { naam: "Croque", prijs: 4.00 },
+      { naam: "Hamburger", prijs: 5.00 },
+      { naam: "Pizza Baguette", prijs: 5.00 }
+    ];
 
-const bestelling = {};
+    const aantallen = {};
+    let totaal = 0;
 
-function updateTotaal() {
-  let totaal = 0;
-  for (let naam in bestelling) {
-    totaal += bestelling[naam].prijs * bestelling[naam].aantal;
-  }
-  document.getElementById('totaal').innerText = `TOTAAL: €${totaal.toFixed(2)}`;
-}
-
-function voegToe(naam, prijs) {
-  if (!bestelling[naam]) {
-    bestelling[naam] = { prijs: prijs, aantal: 0 };
-  }
-  bestelling[naam].aantal++;
-  updateTotaal();
-  updateKnoppen();
-}
-
-function verwijder(naam) {
-  if (bestelling[naam]) {
-    bestelling[naam].aantal--;
-    if (bestelling[naam].aantal <= 0) {
-      delete bestelling[naam];
+    function updateTotaal() {
+      document.getElementById('totaal').innerText = "TOTAAL: €" + totaal.toFixed(2);
     }
-    updateTotaal();
-    updateKnoppen();
-  }
-}
 
-function resetBestelling() {
-  for (let naam in bestelling) {
-    delete bestelling[naam];
-  }
-  updateTotaal();
-  updateKnoppen();
-}
+    function voegToe(naam, prijs) {
+      aantallen[naam] = (aantallen[naam] || 0) + 1;
+      totaal += prijs;
+      document.getElementById(`${naam}-aantal`).innerText = aantallen[naam] + "x";
+      updateTotaal();
+    }
 
-function updateKnoppen() {
-  menu.forEach(item => {
-    const countLabel = document.getElementById(`aantal-${item.naam}`);
-    const aantal = bestelling[item.naam]?.aantal || 0;
-    countLabel.textContent = aantal > 0 ? `x${aantal}` : "";
-  });
-}
+    function verwijder(event, naam, prijs) {
+      event.stopPropagation();
+      if (aantallen[naam] > 0) {
+        aantallen[naam]--;
+        totaal -= prijs;
+        document.getElementById(`${naam}-aantal`).innerText = aantallen[naam] + "x";
+        updateTotaal();
+      }
+    }
 
-function init() {
-  const container = document.getElementById("producten");
-  menu.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "product";
-    div.innerHTML = `
-      <div onclick="voegToe('${item.naam}', ${item.prijs})">
-        ${item.naam}<br>
-        <span class="prijs">€${item.prijs.toFixed(2)}</span>
-      </div>
-      <span id="aantal-${item.naam}" class="aantal-label"></span>
-      <button class="min-knop" onclick="event.stopPropagation(); verwijder('${item.naam}')">−</button>
-    `;
-    container.appendChild(div);
-  });
-}
+    function resetBestelling() {
+      for (let p of producten) {
+        aantallen[p.naam] = 0;
+        document.getElementById(`${p.naam}-aantal`).innerText = "0x";
+      }
+      totaal = 0;
+      updateTotaal();
+    }
 
-init();
-</script>
+    function renderProducten() {
+      const container = document.getElementById('producten');
+      producten.forEach(p => {
+        aantallen[p.naam] = 0;
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.onclick = () => voegToe(p.naam, p.prijs);
+        div.innerHTML = `
+          <span class="naam">${p.naam}</span>
+          <span class="aantal" id="${p.naam}-aantal">0x</span>
+          <span class="prijs">€${p.prijs.toFixed(2)}</span>
+          <button class="min-knop" onclick="verwijder(event, '${p.naam}', ${p.prijs})">-</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    renderProducten();
+  </script>
+
 </body>
 </html>
